@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Google Form → Embed Đẹp</title>
+<style>
+  :root{
+    --blue:#061c3d; --cyan:#007b8b; --green:#00a651; --indigo:#2c4096;
+    --line:#e2e8f0; --muted:#64748b; --bg:#f1f5f9;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:#0f172a;
+    font-family:Inter,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased; line-height:1.5;
+  }
+  .top{
+    background:linear-gradient(90deg,var(--green),var(--cyan),var(--indigo));
+    color:#fff; padding:22px 24px;
+  }
+  .top h1{margin:0; font-size:20px; font-weight:800;}
+  .top p{margin:4px 0 0; font-size:13px; opacity:.92;}
+  .wrap{max-width:1200px; margin:0 auto; padding:24px; display:grid; gap:20px; grid-template-columns:380px 1fr;}
+  @media (max-width:880px){ .wrap{grid-template-columns:1fr;} }
+  .card{background:#fff; border:1px solid var(--line); border-radius:16px; padding:20px;}
+  .card h2{margin:0 0 14px; font-size:14px; font-weight:800; letter-spacing:.4px; color:var(--cyan); text-transform:uppercase;}
+  label{display:block; font-size:13px; font-weight:700; color:var(--blue); margin:14px 0 6px;}
+  label:first-of-type{margin-top:0;}
+  input[type=text], textarea, select{
+    width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:10px;
+    font-size:14px; font-family:inherit; color:var(--blue); outline:none; background:#fff;
+  }
+  input[type=text]:focus, textarea:focus, select:focus{border-color:var(--cyan); box-shadow:0 0 0 3px rgba(0,123,139,.15);}
+  textarea{resize:vertical; min-height:60px;}
+  .row{display:flex; gap:10px; align-items:center;}
+  .range-val{font-size:13px; font-weight:700; color:var(--cyan); min-width:64px; text-align:right;}
+  input[type=range]{width:100%; accent-color:var(--cyan);}
+  .seg{display:flex; gap:8px; margin-top:4px;}
+  .seg button{
+    flex:1; padding:9px; border:1px solid var(--line); background:#fff; border-radius:10px;
+    font-size:13px; font-weight:700; color:var(--muted); cursor:pointer;
+  }
+  .seg button.active{background:var(--blue); color:#fff; border-color:var(--blue);}
+  .swatches{display:flex; gap:8px; margin-top:4px;}
+  .swatches button{width:34px; height:34px; border-radius:9px; border:2px solid transparent; cursor:pointer;}
+  .swatches button.active{border-color:var(--blue); box-shadow:0 0 0 2px #fff inset;}
+  .hint{font-size:12px; color:var(--muted); margin-top:6px;}
+  .err{color:#dc2626; font-size:13px; font-weight:600; margin-top:8px;}
+  .preview-frame{border:1px dashed var(--line); border-radius:14px; padding:14px; background:#fff; min-height:160px; overflow:auto; max-height:62vh;}
+  .code-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;}
+  .copy{
+    background:var(--blue); color:#fff; border:0; border-radius:10px; padding:9px 18px;
+    font-size:13px; font-weight:800; cursor:pointer; display:inline-flex; gap:6px; align-items:center;
+  }
+  .copy:hover{opacity:.9;}
+  .copy.done{background:var(--green);}
+  pre{
+    margin:0; background:#0f172a; color:#e2e8f0; border-radius:12px; padding:14px;
+    font-size:12px; overflow:auto; max-height:280px; white-space:pre-wrap; word-break:break-all;
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  .note{font-size:12px; color:var(--muted); margin-top:14px; line-height:1.6;}
+  .note b{color:var(--blue);}
+</style>
+</head>
+<body>
+  <div class="top">
+    <h1>🔗 Google Form → Embed Đẹp</h1>
+    <p>Dán link Google Form · xem trước trực tiếp · copy HTML để dán lên web như viết blog</p>
+  </div>
+
+  <div class="wrap">
+    <!-- CONTROLS -->
+    <div class="card">
+      <h2>1 · Nhập thông tin</h2>
+
+      <label>Link Google Form</label>
+      <textarea id="url" placeholder="Dán link Google Form vào đây..."></textarea>
+      <div id="urlErr" class="err" style="display:none"></div>
+
+      <label>Kiểu hiển thị</label>
+      <div class="seg" id="mode">
+        <button data-mode="iframe" class="active">Nhúng inline (iframe)</button>
+        <button data-mode="button">Nút bấm (mở tab mới)</button>
+      </div>
+      <div class="hint" id="modeHint">Nhúng trực tiếp vào trang. Hợp với form KHÔNG bắt đăng nhập.</div>
+
+      <label>Tiêu đề (trên khung)</label>
+      <input type="text" id="title" />
+
+      <label>Phụ đề / ngày giờ</label>
+      <input type="text" id="subtitle" placeholder="VD: 🗓️ 19:30 Thứ Bảy 05/07 · 💻 Online" />
+
+      <label id="btnLabelWrap" style="display:none">Chữ trên nút</label>
+      <input type="text" id="btnLabel" value="📝 Đăng ký ngay →" style="display:none" />
+
+      <label>Tông màu</label>
+      <div class="swatches" id="swatches"></div>
+
+      <label id="hHeadWrap">Chiều cao iframe (kéo cho vừa khít khung xem trước)</label>
+      <div class="row" id="hRow">
+        <input type="range" id="height" min="500" max="2800" step="20" value="1300" />
+        <span class="range-val" id="hVal">1300px</span>
+      </div>
+
+      <label>Bề rộng tối đa</label>
+      <div class="row">
+        <input type="range" id="maxw" min="420" max="900" step="10" value="680" />
+        <span class="range-val" id="mwVal">680px</span>
+      </div>
+
+      <div class="note">
+        <b>Mẹo:</b> form khác domain nên không tự đo được chiều cao — kéo thanh trên cho vừa khít form ở khung xem trước bên phải là xong.<br/>
+        Nếu form <b>bắt đăng nhập</b>, hãy chọn kiểu <b>“Nút bấm”</b> (mở tab mới, đăng nhập chạy ổn hơn).
+      </div>
+    </div>
+
+    <!-- PREVIEW + CODE -->
+    <div style="display:flex; flex-direction:column; gap:20px;">
+      <div class="card">
+        <h2>2 · Xem trước</h2>
+        <div class="preview-frame" id="preview"></div>
+      </div>
+      <div class="card">
+        <div class="code-head">
+          <h2 style="margin:0;">3 · HTML để copy</h2>
+          <button class="copy" id="copyBtn">📋 Copy HTML</button>
+        </div>
+        <pre id="code"></pre>
+        <div class="note">Dán đoạn này vào bài viết bằng chế độ <b>Source / HTML (&lt;/&gt;)</b> của trình soạn thảo blog.</div>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  var GRADIENTS = [
+    {name:'Brand', css:'linear-gradient(90deg,#00a651,#007b8b,#2c4096)'},
+    {name:'Tím',   css:'linear-gradient(90deg,#7c3aed,#4f46e5)'},
+    {name:'Cam',   css:'linear-gradient(90deg,#f97316,#e11d48)'},
+    {name:'Xanh',  css:'linear-gradient(90deg,#0ea5e9,#2563eb)'},
+    {name:'Đen',   css:'linear-gradient(90deg,#1e293b,#0f172a)'}
+  ];
+  var state = { mode:'iframe', gradIndex:0 };
+
+  var $ = function(id){ return document.getElementById(id); };
+
+  // ---- swatches ----
+  var sw = $('swatches');
+  GRADIENTS.forEach(function(g,i){
+    var b = document.createElement('button');
+    b.style.background = g.css; b.title = g.name;
+    if(i===0) b.className='active';
+    b.onclick = function(){
+      state.gradIndex = i;
+      [].forEach.call(sw.children,function(c){c.className='';});
+      b.className='active'; render();
+    };
+    sw.appendChild(b);
+  });
+
+  // ---- mode toggle ----
+  [].forEach.call($('mode').children, function(btn){
+    btn.onclick = function(){
+      state.mode = btn.getAttribute('data-mode');
+      [].forEach.call($('mode').children,function(c){c.className='';});
+      btn.className='active';
+      var isBtn = state.mode==='button';
+      $('btnLabelWrap').style.display = isBtn?'block':'none';
+      $('btnLabel').style.display     = isBtn?'block':'none';
+      $('hHeadWrap').style.display     = isBtn?'none':'block';
+      $('hRow').style.display          = isBtn?'none':'flex';
+      $('modeHint').textContent = isBtn
+        ? 'Hiện 1 nút đẹp, bấm vào mở form ở tab mới. Hợp với form bắt đăng nhập.'
+        : 'Nhúng trực tiếp vào trang. Hợp với form KHÔNG bắt đăng nhập.';
+      render();
+    };
+  });
+
+  function esc(s){
+    return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function parseUrl(raw){
+    raw = (raw||'').trim();
+    if(!raw) return {empty:true};
+    if(/forms\.gle/i.test(raw)) return {error:'Link rút gọn forms.gle không nhúng được. Hãy mở link đó, rồi copy link đầy đủ docs.google.com trên thanh địa chỉ.'};
+    var m = raw.match(/forms\/d\/e\/([A-Za-z0-9_\-]+)/);
+    if(m) return {src:'https://docs.google.com/forms/d/e/'+m[1]+'/viewform?embedded=true', view:'https://docs.google.com/forms/d/e/'+m[1]+'/viewform'};
+    m = raw.match(/forms\/d\/([A-Za-z0-9_\-]+)/);
+    if(m) return {src:'https://docs.google.com/forms/d/'+m[1]+'/viewform?embedded=true', view:'https://docs.google.com/forms/d/'+m[1]+'/viewform'};
+    if(/^[A-Za-z0-9_\-]{25,}$/.test(raw)) return {src:'https://docs.google.com/forms/d/e/'+raw+'/viewform?embedded=true', view:'https://docs.google.com/forms/d/e/'+raw+'/viewform'};
+    return {error:'Link không hợp lệ. Dán link dạng https://docs.google.com/forms/d/e/.../viewform'};
+  }
+
+  function build(p){
+    var g = GRADIENTS[state.gradIndex].css;
+    var title = $('title').value, subtitle = $('subtitle').value;
+    var maxw = $('maxw').value;
+
+    if(state.mode==='button'){
+      var label = $('btnLabel').value || 'Đăng ký ngay →';
+      return '<div style="text-align:center;margin:32px 0;font-family:Inter,Arial,sans-serif;">\n'+
+        '  <a href="'+p.view+'" target="_blank" rel="noopener" style="display:inline-block;background:'+g+';color:#fff;text-decoration:none;font-weight:700;font-size:16px;padding:15px 38px;border-radius:9999px;box-shadow:0 12px 26px rgba(15,23,42,.18);">'+esc(label)+'</a>\n'+
+        '</div>';
+    }
+
+    var height = $('height').value;
+    var header = '';
+    if(title || subtitle){
+      header = '  <div style="background:'+g+';padding:22px;text-align:center;color:#fff;">\n'+
+        (title?    '    <div style="font-size:19px;font-weight:700;line-height:1.3;">'+esc(title)+'</div>\n':'')+
+        (subtitle? '    <div style="font-size:13px;opacity:.92;margin-top:6px;">'+esc(subtitle)+'</div>\n':'')+
+        '  </div>\n';
+    }
+    return '<div style="max-width:'+maxw+'px;margin:32px auto;border-radius:20px;overflow:hidden;'+
+      'box-shadow:0 20px 45px rgba(15,23,42,.12);border:1px solid #e2e8f0;background:#fff;font-family:Inter,Arial,sans-serif;">\n'+
+      header+
+      '  <iframe src="'+p.src+'" width="100%" height="'+height+'" style="display:block;border:0;width:100%;" loading="lazy" title="'+esc(title||'Google Form')+'">Đang tải biểu mẫu…</iframe>\n'+
+      '</div>';
+  }
+
+  function render(){
+    $('hVal').textContent = $('height').value+'px';
+    $('mwVal').textContent = $('maxw').value+'px';
+    var p = parseUrl($('url').value);
+    var errEl = $('urlErr');
+    if(p.error){ errEl.style.display='block'; errEl.textContent=p.error; }
+    else { errEl.style.display='none'; }
+
+    if(p.empty || p.error){
+      $('preview').innerHTML = '<div style="color:#94a3b8;text-align:center;padding:40px;font-size:14px;">Dán link Google Form để xem trước…</div>';
+      $('code').textContent = '';
+      return;
+    }
+    var html = build(p);
+    $('code').textContent = html;
+    $('preview').innerHTML = html;
+  }
+
+  // ---- copy ----
+  $('copyBtn').onclick = function(){
+    var txt = $('code').textContent;
+    if(!txt) return;
+    navigator.clipboard.writeText(txt).then(function(){
+      var b = $('copyBtn'); b.textContent='✓ Đã copy!'; b.className='copy done';
+      setTimeout(function(){ b.textContent='📋 Copy HTML'; b.className='copy'; }, 1600);
+    });
+  };
+
+  // ---- live update ----
+  ['url','title','subtitle','btnLabel','height','maxw'].forEach(function(id){
+    $(id).addEventListener('input', render);
+  });
+
+  // ---- prefill demo (form của bạn) ----
+  $('url').value = 'https://docs.google.com/forms/d/e/1FAIpQLSeh4q22eGixT7Msyn4SlsH5m5juPQXgfPxadaBwODgF6D09Cw/viewform';
+  $('title').value = 'Đăng ký Workshop: Nhập môn Claude & Vibe Coding';
+  $('subtitle').value = '🗓️ [Điền ngày giờ] · 💻 Online qua Google Meet';
+  render();
+})();
+</script>
+</body>
+</html>
