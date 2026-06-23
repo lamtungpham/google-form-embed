@@ -2,9 +2,6 @@
 
 Công cụ tạo mã nhúng (embed) **đẹp & responsive** cho Google Form — dán link, xem trước trực tiếp, copy HTML để dán lên website/blog như viết bài.
 
-## Dùng ngay (offline)
-Mở `index.html` bằng trình duyệt (double-click). Không cần cài đặt, không cần internet.
-
 ## Cách dùng
 1. Dán **link Google Form** vào ô đầu tiên.
 2. Chỉnh tiêu đề / phụ đề / màu; kéo thanh **Chiều cao** cho vừa khít form ở khung xem trước.
